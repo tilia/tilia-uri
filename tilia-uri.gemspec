@@ -8,6 +8,6 @@ Gem::Specification.new do |s|
   s.author      = 'Jakob Sack'
   s.email       = 'tilia@jakobsack.de'
   s.files       = `git ls-files`.split("\n")
-  s.homepage    = 'https://rubygems.org/gems/tilia-uri'
+  s.homepage    = 'https://github.com/tilia/tilia-uri'
   s.add_runtime_dependency 'activesupport', '~> 4.2'
 end
