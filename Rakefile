@@ -11,7 +11,7 @@ RuboCop::RakeTask.new do |t|
   t.options = ['--format', 'html', '--out', 'coverage/rubocop.html']
 end
 YARD::Rake::YardocTask.new do |t|
-  t.files = ['lib/**/*.rb', '-', 'Readme.md']
+  t.files = ['lib/**/*.rb', '-', 'README.md']
 end
 
 task(default: :test)
