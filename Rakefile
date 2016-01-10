@@ -12,6 +12,7 @@ RuboCop::RakeTask.new do |t|
 end
 YARD::Rake::YardocTask.new do |t|
   t.files = ['lib/**/*.rb', '-', 'README.md']
+  t.options = ['--private', '--protected']
 end
 
 task(default: :test)
