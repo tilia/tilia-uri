@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    tilia-uri (1.0.1)
+    tilia-uri (1.0.1.1)
       activesupport (>= 4.0)
 
 GEM
