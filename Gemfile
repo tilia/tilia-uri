@@ -1,7 +1,7 @@
 source 'https://rubygems.org'
 
 # External dependencies
-gem 'activesupport', '~> 4.2'
+gemspec
 
 # Testing
 gem 'rake'
