@@ -32,27 +32,27 @@ module Tilia
 
       # If the new path defines a scheme, it's absolute and we can just return
       # that.
-      return build(delta) if delta['scheme']
+      return build(delta) if delta[:scheme]
 
       new_parts = {}
 
-      new_parts['scheme'] = pick.call('scheme')
-      new_parts['host']   = pick.call('host')
-      new_parts['port']   = pick.call('port')
+      new_parts[:scheme] = pick.call(:scheme)
+      new_parts[:host]   = pick.call(:host)
+      new_parts[:port]   = pick.call(:port)
 
       path = ''
-      if !delta['path'].blank?
+      if !delta[:path].blank?
         # If the path starts with a slash
-        if delta['path'][0] == '/'
-          path = delta['path']
+        if delta[:path][0] == '/'
+          path = delta[:path]
         else
           # Removing last component from base path.
-          path = base['path']
+          path = base[:path]
           path = path[0...path.rindex('/')] if path.index '/'
-          path += '/' + delta['path']
+          path += '/' + delta[:path]
         end
       else
-        path = base['path'].blank? ? '/' : base['path']
+        path = base[:path].blank? ? '/' : base[:path]
       end
 
       # Removing .. and .
@@ -79,15 +79,15 @@ module Tilia
       path = new_path_parts.join '/'
 
       # If the source url ended with a /, we want to preserve that.
-      new_parts['path'] = path
-      if delta['query']
-        new_parts['query'] = delta['query']
-      elsif !base['query'].blank? && delta['host'].blank? && delta['path'].blank?
+      new_parts[:path] = path
+      if delta[:query]
+        new_parts[:query] = delta[:query]
+      elsif !base[:query].blank? && delta[:host].blank? && delta[:path].blank?
         # Keep the old query if host and path didn't change
-        new_parts['query'] = base['query']
+        new_parts[:query] = base[:query]
       end
 
-      new_parts['fragment'] = delta['fragment'] if delta['fragment']
+      new_parts[:fragment] = delta[:fragment] if delta[:fragment]
       build(new_parts)
     end
 
@@ -104,8 +104,8 @@ module Tilia
     def self.normalize(uri)
       parts = parse(uri)
 
-      unless parts['path'].blank?
-        path_parts = parts['path'].gsub(%r{^/+}, '').split(%r{/})
+      unless parts[:path].blank?
+        path_parts = parts[:path].gsub(%r{^/+}, '').split(%r{/})
 
         new_path_parts = []
         path_parts.each do |path_part|
@@ -120,32 +120,32 @@ module Tilia
             new_path_parts << URI.escape(URI.unescape(path_part), Regexp.new("[^#{URI::PATTERN::UNRESERVED}]"))
           end
         end
-        parts['path'] = '/' + new_path_parts.join('/')
+        parts[:path] = '/' + new_path_parts.join('/')
       end
 
-      if parts['scheme']
-        parts['scheme'] = parts['scheme'].downcase
+      if parts[:scheme]
+        parts[:scheme] = parts[:scheme].downcase
         default_ports = {
           'http'  => '80',
           'https' => '443'
         }
 
-        if !parts['port'].blank? && default_ports.key?(parts['scheme']) && default_ports[parts['scheme']] == parts['port']
+        if !parts[:port].blank? && default_ports.key?(parts[:scheme]) && default_ports[parts[:scheme]] == parts[:port]
           # Removing default ports.
-          parts['port'] = nil
+          parts[:port] = nil
         end
 
         # A few HTTP specific rules.
-        case parts['scheme']
+        case parts[:scheme]
         when 'http', 'https'
-          if parts['path'].blank?
+          if parts[:path].blank?
             # An empty path is equivalent to / in http.
-            parts['path'] = '/'
+            parts[:path] = '/'
           end
         end
       end
 
-      parts['host'] = parts['host'].downcase if parts['host']
+      parts[:host] = parts[:host].downcase if parts[:host]
 
       build(parts)
     end
@@ -157,17 +157,17 @@ module Tilia
     # set by parse_url, which makes it a bit easier to work with.
     #
     # @param [String] uri
-    # @return [Hash]
+    # @return [Hash{Symbol => String}]
     def self.parse(uri)
       u = ::URI.split(uri)
       {
-        'scheme'   => u[0],
-        'user'     => u[1],
-        'host'     => u[2],
-        'port'     => u[3],
-        'path'     => u[5] || u[6], # 6 = mailto, opaque
-        'query'    => u[7],
-        'fragment' => u[8]
+        scheme:   u[0],
+        user:     u[1],
+        host:     u[2],
+        port:     u[3],
+        path:     u[5] || u[6], # 6 = mailto, opaque
+        query:    u[7],
+        fragment: u[8]
       }
     end
 
@@ -180,16 +180,16 @@ module Tilia
       uri = ''
 
       authority = ''
-      unless parts['host'].blank?
-        authority = parts['host']
+      unless parts[:host].blank?
+        authority = parts[:host]
 
-        authority = parts['user'] + '@' + authority unless parts['user'].blank?
-        authority = authority + ':' + parts['port'].to_s unless parts['port'].blank?
+        authority = parts[:user] + '@' + authority unless parts[:user].blank?
+        authority = authority + ':' + parts[:port].to_s unless parts[:port].blank?
       end
 
-      unless parts['scheme'].blank?
+      unless parts[:scheme].blank?
         # If there's a scheme, there's also a host.
-        uri = parts['scheme'] + ':'
+        uri = parts[:scheme] + ':'
       end
 
       unless authority.blank?
@@ -197,9 +197,9 @@ module Tilia
         uri += '//' + authority
       end
 
-      uri += parts['path'] unless parts['path'].blank?
-      uri += '?' + parts['query'] unless parts['query'].blank?
-      uri += '#' + parts['fragment'] unless parts['fragment'].blank?
+      uri += parts[:path] unless parts[:path].blank?
+      uri += '?' + parts[:query] unless parts[:query].blank?
+      uri += '#' + parts[:fragment] unless parts[:fragment].blank?
 
       uri
     end
@@ -219,12 +219,12 @@ module Tilia
     # the end of the string is stripped off.
     #
     # @param [String] path
-    # @return [Array]
+    # @return [Array(String, String)]
     def self.split(path)
       if path =~ %r{^(?:(?:(.*)(?:\/+))?([^\/]+))(?:\/?)$}u
         [Regexp.last_match[1] || '', Regexp.last_match[2] || '']
       else
-        [nil, nil]
+        ['', '']
       end
     end
   end
