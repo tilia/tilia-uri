@@ -117,7 +117,7 @@ module Tilia
             new_path_parts.pop
           else
             # Ensuring that everything is correctly percent-encoded.
-            new_path_parts << URI.escape(URI.unescape(path_part), Regexp.new("[^#{URI::PATTERN::UNRESERVED}]"))
+            new_path_parts << URI::DEFAULT_PARSER.escape(URI::DEFAULT_PARSER.unescape(path_part), Regexp.new("[^#{URI::PATTERN::UNRESERVED}]"))
           end
         end
         parts[:path] = '/' + new_path_parts.join('/')
