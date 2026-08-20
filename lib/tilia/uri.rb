@@ -10,6 +10,21 @@ module Tilia
   module Uri
     require 'tilia/uri/version'
 
+    # Parser used for percent-encoding path segments.
+    #
+    # Ruby 3.4 turned URI::DEFAULT_PARSER into the RFC3986 parser, whose
+    # #escape/#unescape (and URI::PATTERN) are deprecated. Use the RFC2396
+    # parser explicitly where it is available.
+    PARSER = defined?(URI::RFC2396_PARSER) ? URI::RFC2396_PARSER : URI::DEFAULT_PARSER
+
+    # Character class of all characters that need to be percent-encoded.
+    UNSAFE_PATH_CHARACTERS =
+      if defined?(URI::RFC2396_Parser)
+        Regexp.new("[^#{URI::RFC2396_Parser::PATTERN::UNRESERVED}]")
+      else
+        Regexp.new("[^#{URI::PATTERN::UNRESERVED}]")
+      end
+
     # Resolves relative urls, like a browser would.
     #
     # This function takes a basePath, which itself _may_ also be relative, and
@@ -117,7 +132,7 @@ module Tilia
             new_path_parts.pop
           else
             # Ensuring that everything is correctly percent-encoded.
-            new_path_parts << URI::DEFAULT_PARSER.escape(URI::DEFAULT_PARSER.unescape(path_part), Regexp.new("[^#{URI::PATTERN::UNRESERVED}]"))
+            new_path_parts << PARSER.escape(PARSER.unescape(path_part), UNSAFE_PATH_CHARACTERS)
           end
         end
         parts[:path] = '/' + new_path_parts.join('/')
